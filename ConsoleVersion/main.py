@@ -1,27 +1,77 @@
-import os
-import requests
+from os import system
 from time import sleep
+from math import floor
+from threading import Thread
+import colorama
+from urwid.old_str_util import get_width
 
-class LifeSimulator():
+class LifeSimulator:
     def __init__(self):
-        pass
+        self.focus = None
+        self.Width = 100
+        self.Height = 30
+        system("mode con cols={} lines={}".format(str(self.Width), str(self.Height)))
+    def calcWidth(self, string):
+        temp = 0
+        for i in range(len(string)):
+            temp += get_width(ord(string[i]))
+        return temp
     
-    def refresh(self):
-        os.system("cls")
-        
-    def mainScreen(self):
-        self.checkUpdate()
+    def judge(self, number):
+        n1=str(float(number)).split('.')
+        if n1[1]=='0': # 非小数
+            return False
+        else:
+            return True
     
-    def checkUpdate(self):
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
-                   "Cookie": r"__test=d8f62c0d5c28aec55842741c276b9969; Imvf_2132_saltkey=nYY6T544; Imvf_2132_lastvisit=1677537703; Imvf_2132_auth=0cd0RMbrjsqNITLzeIrGs0nT6I3VPKPnEG56Zvdb%2BYvPqIbDhpQXkNCQWDSMpdwRQdXXFDMfq9n0bh91c12%2F; Imvf_2132_nofavfid=1; Imvf_2132_study_nge_extstyle=auto; Imvf_2132_study_nge_extstyle_default=auto; Imvf_2132_sid=m5hE5S; Imvf_2132_lip=218.13.189.218%2C1677647624; Imvf_2132_creditnotice=0D100D15D0D2D0D0D0D0D1; Imvf_2132_creditbase=0D1090D6967D160D50D0D0D0D0; Imvf_2132_creditrule=%E6%AF%8F%E5%A4%A9%E7%99%BB%E5%BD%95; Imvf_2132_onlineusernum=2; Imvf_2132_ulastactivity=9dfduUKulb3Q4rRqicE2oNViHdP5uiFV2i1gp5GmLAfezMvNxAaz; PHPSESSID=980f0337ff58f75c1977381116343ff0; Imvf_2132_sendmail=1; Imvf_2132_lastact=1678341207%09home.php%09spacecp; Imvf_2132_lastcheckfeed=1%7C1678341207"}
-        requrl = requests.get("http://tbdriver.byethost24.com/Version/MathBeats/version.txt", headers=headers)
-        version = requrl.text
-        print(version)
-        pass
+    def printStrWithLRFrame(self, string):
+        '''
+        输出带左右框的文字
+        '''
+        print("| " + string, end="")
+        for i in range(self.Width - self.calcWidth(string) - 5):
+            print(" ", end="")
+        print(" |")
     
-    def start(self):
-        self.mainScreen()
+    def printDevideLine(self, string, fill = "-"):
+        # 左侧间隔
+        LeftR = (self.Width - self.calcWidth(string))/2
+        offset = 1 if self.judge(LeftR) else 0
+        LeftR = int(LeftR)
+        for i in range(LeftR - offset):
+            print("-", end="")
+        print(string, end="")
+        for i in range(LeftR + offset - 1):
+            print("-", end="")
+        print("-")
+          
+    def calcData(self):
+        self.temp = 0
+        def _calcData():
+            while True:
+                self.temp+=1
+                
+                # 限定每帧刷新率
+                sleep(1/60)
+        thread = Thread(target=_calcData)
+        thread.setDaemon(True)
+        thread.start()
+    
+    def button(self, string, function, autoSwitchLine, LandRSpacing: list):
+        if autoSwitchLine:
+            printButtonText = string.split("\n")
+        else:
+            printButtonText = [string]
+    
+    def mainLoop(self):
+        self.calcData()
+        while True:
+            system("cls")
+            self.printDevideLine("LifeSimulator")
+            self.printStrWithLRFrame(str(self.temp))
+            self.printDevideLine("-")
+            sleep(1/30)
 
-LSMain = LifeSimulator()
-LSMain.start()
+
+LifeSimulatorAll = LifeSimulator()
+LifeSimulatorAll.mainLoop()
